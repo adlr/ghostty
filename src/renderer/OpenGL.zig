@@ -2290,11 +2290,15 @@ fn flushAtlasSingle(
 
 /// Render renders the current cell state. This will not modify any of
 /// the cells.
-pub fn drawFrame(self: *OpenGL, surface: *apprt.Surface) !void {
+pub fn drawFrame(self: *OpenGL, surface: *apprt.Surface, width: u32, height: u32) !void {
     // If we're in single-threaded more we grab a lock since we use shared data.
     if (single_threaded_draw) self.draw_mutex.lock();
     defer if (single_threaded_draw) self.draw_mutex.unlock();
     const gl_state: *GLState = if (self.gl_state) |*v| v else return;
+
+    self.size.screen.width = width;
+    self.size.screen.height = height;
+    self.deferred_screen_size = .{ .size = self.size };
 
     // Go through our images and see if we need to setup any textures.
     {

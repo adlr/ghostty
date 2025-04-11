@@ -780,7 +780,7 @@ pub fn primaryWidget(self: *Surface) *gtk.Widget {
 }
 
 fn render(self: *Surface) !void {
-    try self.core_surface.renderer.drawFrame(self);
+    try self.core_surface.renderer.drawFrame(self, self.size.width, self.size.height);
 }
 
 /// Called by core surface to get the cgroup.
