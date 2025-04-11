@@ -182,6 +182,7 @@ const SetScreenSize = struct {
             @intCast(self.size.screen.height),
         );
 
+        log.debug("padding: {} {} {} {} ts: {} {}", .{ self.size.padding.left, self.size.padding.top, self.size.padding.right, self.size.padding.bottom, terminal_size.width, terminal_size.height });
         // Update the projection uniform within our shader
         inline for (.{ "cell_program", "image_program" }) |name| {
             const program = @field(gl_state, name);
