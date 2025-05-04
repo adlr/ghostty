@@ -171,7 +171,7 @@ pub fn init(self: *Window, app: *App) !void {
     self.tab_overview = if (adw_version.supportsTabOverview()) overview: {
         const tab_overview = adw.TabOverview.new();
         tab_overview.setView(self.notebook.tab_view);
-        tab_overview.setEnableNewTab(1);
+        //tab_overview.setEnableNewTab(1);
         _ = adw.TabOverview.signals.create_tab.connect(
             tab_overview,
             *Window,
@@ -307,7 +307,7 @@ pub fn init(self: *Window, app: *App) !void {
 
     // In debug we show a warning and apply the 'devel' class to the window.
     // This is a really common issue where people build from source in debug and performance is really bad.
-    if (comptime std.debug.runtime_safety) {
+    if (comptime std.debug.runtime_safety and false) {
         const warning_box = gtk.Box.new(.vertical, 0);
         const warning_text = i18n._("⚠️ You're running a debug build of Ghostty! Performance will be degraded.");
         if (adw_version.supportsBanner()) {
