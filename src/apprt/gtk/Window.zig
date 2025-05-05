@@ -168,7 +168,7 @@ pub fn init(self: *Window, app: *App) !void {
     self.notebook.init(self);
 
     // If we are using Adwaita, then we can support the tab overview.
-    self.tab_overview = if (adw_version.supportsTabOverview()) overview: {
+    self.tab_overview = if (adw_version.supportsTabOverview() and false) overview: {
         const tab_overview = adw.TabOverview.new();
         tab_overview.setView(self.notebook.tab_view);
         tab_overview.setEnableNewTab(1);
@@ -307,7 +307,7 @@ pub fn init(self: *Window, app: *App) !void {
 
     // In debug we show a warning and apply the 'devel' class to the window.
     // This is a really common issue where people build from source in debug and performance is really bad.
-    if (comptime std.debug.runtime_safety) {
+    if (comptime std.debug.runtime_safety and false) {
         const warning_box = gtk.Box.new(.vertical, 0);
         const warning_text = i18n._("⚠️ You're running a debug build of Ghostty! Performance will be degraded.");
         if (adw_version.supportsBanner()) {
@@ -403,8 +403,9 @@ pub fn init(self: *Window, app: *App) !void {
         toolbar_view.setTopBarStyle(toolbar_style);
 
         // Set our application window content.
-        self.tab_overview.?.setChild(toolbar_view.as(gtk.Widget));
-        self.window.setContent(self.tab_overview.?.as(gtk.Widget));
+        // self.tab_overview.?.setChild(toolbar_view.as(gtk.Widget));
+        // self.window.setContent(self.tab_overview.?.as(gtk.Widget));
+        self.window.setContent(toolbar_view.as(gtk.Widget));
     } else tab_bar: {
         if (self.config.gtk_tabs_location == .hidden) break :tab_bar;
         // In earlier adwaita versions, we need to add the tabbar manually since we do not use

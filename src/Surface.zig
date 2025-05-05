@@ -49,7 +49,7 @@ const Renderer = rendererpkg.Renderer;
 /// are chosen to match the default size of Mac's Terminal.app, but is
 /// otherwise somewhat arbitrary.
 const min_window_width_cells: u32 = 10;
-const min_window_height_cells: u32 = 4;
+const min_window_height_cells: u32 = 0;
 
 /// Allocator
 alloc: Allocator,
