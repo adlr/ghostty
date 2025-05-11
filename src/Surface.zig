@@ -3406,6 +3406,9 @@ pub fn mousePressureCallback(
 /// they are only used to indicate the cursor is outside the viewport.
 /// It's important to do this to ensure hover states are cleared.
 ///
+/// The specific x value of -0 represents the mouse dragging outside the
+/// viewport.
+///
 /// The mods parameter is optional because some apprts do not provide
 /// modifier information on cursor position events. If mods is null then
 /// we'll use the last known mods. This is usually accurate since mod events
@@ -3423,7 +3426,7 @@ pub fn cursorPosCallback(
 
     // If the position is negative, it is outside our viewport and
     // we need to clear any hover states.
-    if (pos.x < 0 or pos.y < 0) {
+    if (pos.x < -0.0 or pos.y < 0) {
         // Reset our hyperlink state
         self.mouse.link_point = null;
         if (self.mouse.over_link) {
@@ -3460,6 +3463,7 @@ pub fn cursorPosCallback(
 
     // The mouse position in the viewport
     const pos_vp = self.posToViewport(pos.x, pos.y);
+    log.debug("POS_VP: {} {d} {d}", .{ pos_vp, pos.x, pos.y });
 
     // We always reset the over link status because it will be reprocessed
     // below. But we need the old value to know if we need to undo mouse
@@ -3568,11 +3572,19 @@ pub fn cursorPosCallback(
             .viewport = .{
                 .x = pos_vp.x,
                 .y = pos_vp.y,
+                .off_left = pos_vp.off_left,
             },
         }) orelse {
             if (comptime std.debug.runtime_safety) unreachable;
             return;
         };
+        // if (pos.x == -0.0) {
+        //     log.debug("Pos is neg {d}", .{pos.x});
+        //     pin.off_left = true;
+        // } else {
+        //     log.debug("Pos is pos {d}", .{pos.x});
+        // }
+        log.debug("Pin offleft: {}", .{pin.off_left});
 
         // Handle dragging depending on click count
         switch (self.mouse.left_click_count) {
@@ -3755,6 +3767,7 @@ fn dragLeftClickSingle(
     // set earlier.
     assert(self.io.terminal.screen.selection != null);
     const sel = self.io.terminal.screen.selection.?;
+    log.debug("About to set sel {}", .{drag_pin.off_left});
     try self.setSelection(terminal.Selection.init(
         sel.start(),
         drag_pin,
@@ -3845,7 +3858,7 @@ pub fn posToViewport(self: Surface, xpos: f64, ypos: f64) terminal.point.Coordin
     // Get our grid cell
     const coord: rendererpkg.Coordinate = .{ .surface = .{ .x = xpos, .y = ypos } };
     const grid = coord.convert(.grid, self.size).grid;
-    return .{ .x = grid.x, .y = grid.y };
+    return .{ .x = grid.x, .y = grid.y, .off_left = grid.off_left };
 }
 
 /// Scroll to the bottom of the viewport.

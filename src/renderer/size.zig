@@ -78,7 +78,7 @@ pub const Coordinate = union(enum) {
     pub const Tag = @typeInfo(Coordinate).@"union".tag_type.?;
     pub const Surface = struct { x: f64, y: f64 };
     pub const Terminal = struct { x: f64, y: f64 };
-    pub const Grid = struct { x: GridSize.Unit, y: GridSize.Unit };
+    pub const Grid = struct { x: GridSize.Unit, y: GridSize.Unit, off_left: bool };
 
     /// Convert a coordinate to a different space within the same Size.
     pub fn convert(self: Coordinate, to: Tag, size: Size) Coordinate {
@@ -114,7 +114,7 @@ pub const Coordinate = union(enum) {
                 const row: GridSize.Unit = @intFromFloat(clamped_y / cell_height);
                 const clamped_col: GridSize.Unit = @min(col, grid.columns - 1);
                 const clamped_row: GridSize.Unit = @min(row, grid.rows - 1);
-                break :grid .{ .grid = .{ .x = clamped_col, .y = clamped_row } };
+                break :grid .{ .grid = .{ .x = clamped_col, .y = clamped_row, .off_left = term.x < 0 } };
             },
         };
     }

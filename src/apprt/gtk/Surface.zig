@@ -1563,7 +1563,7 @@ fn gtkMouseMotion(
     const scaled = self.scaledCoordinates(x, y);
 
     const pos: apprt.CursorPos = .{
-        .x = @floatCast(@max(0, scaled.x)),
+        .x = @floatCast(@max(-0.0, scaled.x)),
         .y = @floatCast(scaled.y),
     };
 
@@ -1577,7 +1577,9 @@ fn gtkMouseMotion(
     // To prevent incorrect behavior, we'll only grab focus and
     // continue with callback logic if the cursor has actually moved.
     const is_cursor_still = @abs(self.cursor_pos.x - pos.x) < 1 and
+        std.math.signbit(self.cursor_pos.x) == std.math.signbit(pos.x) and
         @abs(self.cursor_pos.y - pos.y) < 1;
+    log.debug("mouse motion x={d} y={d}, pos {d} {d} still {}", .{ scaled.x, scaled.y, pos.x, pos.y, is_cursor_still });
 
     if (!is_cursor_still) {
         // If we don't have focus, and we want it, grab it.

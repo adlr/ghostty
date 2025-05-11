@@ -2111,13 +2111,14 @@ pub fn select(self: *Screen, sel_: ?Selection) !void {
     };
 
     // If this selection is untracked then we track it.
-    const tracked_sel = if (sel.tracked()) sel else try sel.track(self);
+    var tracked_sel = if (sel.tracked()) sel else try sel.track(self);
     errdefer if (!sel.tracked()) tracked_sel.deinit(self);
 
     // Untrack prior selection
     if (self.selection) |*old| old.deinit(self);
     self.selection = tracked_sel;
     self.dirty.selection = true;
+    log.debug("Set sel: {}", .{tracked_sel.endPtr().off_left});
 }
 
 /// Same as select(null) but can't fail.
@@ -2181,6 +2182,7 @@ pub fn selectionString(self: *Screen, alloc: Allocator, opts: SelectionString) !
         }
         break :end end;
     };
+    log.debug("sel start over {} end {}", .{ sel_start.off_left, sel_end.off_left });
 
     var page_it = sel_start.pageIterator(.right_down, sel_end);
     while (page_it.next()) |chunk| {

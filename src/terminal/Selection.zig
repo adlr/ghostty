@@ -9,6 +9,8 @@ const PageList = @import("PageList.zig");
 const Screen = @import("Screen.zig");
 const Pin = PageList.Pin;
 
+const log = std.log.scoped(.selection);
+
 // NOTE(mitchellh): I'm not very happy with how this is implemented, because
 // the ordering operations which are used frequently require using
 // pointFromPin which -- at the time of writing this -- is slow. The overall
@@ -257,6 +259,7 @@ pub fn contains(self: Selection, s: *const Screen, pin: Pin) bool {
     const tl = s.pages.pointFromPin(.screen, tl_pin).?.screen;
     const br = s.pages.pointFromPin(.screen, br_pin).?.screen;
     const p = s.pages.pointFromPin(.screen, pin).?.screen;
+    log.debug("tl: {} {} {}, br: {} {} {}, p: {} {} {}", .{ tl.x, tl.y, tl_pin.off_left, br.x, br.y, br_pin.off_left, p.x, p.y, pin.off_left });
 
     // If we're in rectangle select, we can short-circuit with an easy check
     // here
@@ -272,7 +275,12 @@ pub fn contains(self: Selection, s: *const Screen, pin: Pin) bool {
     if (p.y == tl.y) return p.x >= tl.x;
 
     // If on bottom line, just has to be right of X
-    if (p.y == br.y) return p.x <= br.x;
+    if (p.y == br.y) {
+        if (br_pin.off_left == pin.off_left) {
+            return p.x <= br.x;
+        }
+        return pin.off_left;
+    }
 
     // If between the top/bottom, always good.
     return p.y > tl.y and p.y < br.y;
@@ -360,6 +368,7 @@ pub fn adjust(
     // top/bottom visually. So this results in the correct behavior
     // whether the user drags up or down.
     const end_pin = self.endPtr();
+    log.debug("adjust called", .{});
     switch (adjustment) {
         .up => if (end_pin.up(1)) |new_end| {
             end_pin.* = new_end;

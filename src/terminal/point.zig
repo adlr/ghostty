@@ -75,7 +75,10 @@ pub const Coordinate = struct {
     /// in a single page.
     y: u32 = 0,
 
+    /// The x coordinate is actually left of zero.
+    off_left: bool = false,
+
     pub fn eql(self: Coordinate, other: Coordinate) bool {
-        return self.x == other.x and self.y == other.y;
+        return self.x == other.x and self.y == other.y and self.off_left == other.off_left;
     }
 };

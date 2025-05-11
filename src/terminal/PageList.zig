@@ -2420,6 +2420,7 @@ pub fn pin(self: *const PageList, pt: point.Point) ?Pin {
     // Grab the top left and move to the point.
     var p = self.getTopLeft(pt).down(pt.coord().y) orelse return null;
     p.x = x;
+    p.off_left = pt.coord().off_left;
     return p;
 }
 
@@ -3295,6 +3296,7 @@ pub const Pin = struct {
     node: *List.Node,
     y: size.CellCountInt = 0,
     x: size.CellCountInt = 0,
+    off_left: bool = false,
 
     pub fn rowAndCell(self: Pin) struct {
         row: *pagepkg.Row,
@@ -3308,13 +3310,18 @@ pub const Pin = struct {
 
     /// Returns the cells for the row that this pin is on. The subset determines
     /// what subset of the cells are returned. The "left/right" subsets are
-    /// inclusive of the x coordinate of the pin.
+    /// inclusive of the x coordinate of the pin if off_left is false. If
+    /// off_left is true, the left subset is exclusive of the x coordinate.
     pub fn cells(self: Pin, subset: CellSubset) []pagepkg.Cell {
+        //log.debug("Called cells() with off_left {}", .{self.off_left});
         const rac = self.rowAndCell();
         const all = self.node.data.getCells(rac.row);
         return switch (subset) {
             .all => all,
-            .left => all[0 .. self.x + 1],
+            .left => switch (self.off_left) {
+                false => all[0 .. self.x + 1],
+                true => all[0..self.x],
+            },
             .right => all[self.x..],
         };
     }
@@ -3552,7 +3559,8 @@ pub const Pin = struct {
     pub fn eql(self: Pin, other: Pin) bool {
         return self.node == other.node and
             self.y == other.y and
-            self.x == other.x;
+            self.x == other.x and
+            self.off_left == other.off_left;
     }
 
     /// Move the pin left n columns. n must fit within the size.
