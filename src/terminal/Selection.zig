@@ -437,15 +437,15 @@ pub fn adjust(
                 const cells = next.node.data.getCells(rac.row);
                 if (page.Cell.hasTextAny(cells)) {
                     end_pin.* = next;
-                    end_pin.x = @intCast(cells.len - 1);
+                    end_pin.x = .{ .col = @intCast(cells.len - 1) };
                     break;
                 }
             }
         },
 
-        .beginning_of_line => end_pin.x = 0,
+        .beginning_of_line => end_pin.x = .{ .col = 0 },
 
-        .end_of_line => end_pin.x = end_pin.node.data.size.cols - 1,
+        .end_of_line => end_pin.x = .{ .col = end_pin.node.data.size.cols - 1 },
     }
 }
 

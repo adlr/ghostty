@@ -1033,7 +1033,7 @@ fn prepKittyVirtualPlacement(
     try self.prepKittyImage(&image);
     try self.image_placements.append(self.alloc, .{
         .image_id = image.id,
-        .x = @intCast(rp.top_left.x),
+        .x = @intCast(rp.top_left.x.col),
         .y = @intCast(viewport.viewport.y),
         .z = -1,
         .width = rp.dest_width,
@@ -1126,7 +1126,7 @@ fn prepKittyPlacement(
     if (image.width > 0 and image.height > 0) {
         try self.image_placements.append(self.alloc, .{
             .image_id = image.id,
-            .x = @intCast(rect.top_left.x),
+            .x = @intCast(rect.top_left.x.col),
             .y = @intCast(viewport.viewport.y),
             .z = p.z,
             .width = dest_width,
@@ -1395,28 +1395,28 @@ pub fn rebuildCells(
                     // Try to read the cells from the shaping cache if we can.
                     self.font_shaper_cache.get(run) orelse
                     cache: {
-                        // Otherwise we have to shape them.
-                        const cells = try self.font_shaper.shape(run);
+                    // Otherwise we have to shape them.
+                    const cells = try self.font_shaper.shape(run);
 
-                        // Try to cache them. If caching fails for any reason we
-                        // continue because it is just a performance optimization,
-                        // not a correctness issue.
-                        self.font_shaper_cache.put(
-                            self.alloc,
-                            run,
-                            cells,
-                        ) catch |err| {
-                            log.warn(
-                                "error caching font shaping results err={}",
-                                .{err},
-                            );
-                        };
-
-                        // The cells we get from direct shaping are always owned
-                        // by the shaper and valid until the next shaping call so
-                        // we can safely use them.
-                        break :cache cells;
+                    // Try to cache them. If caching fails for any reason we
+                    // continue because it is just a performance optimization,
+                    // not a correctness issue.
+                    self.font_shaper_cache.put(
+                        self.alloc,
+                        run,
+                        cells,
+                    ) catch |err| {
+                        log.warn(
+                            "error caching font shaping results err={}",
+                            .{err},
+                        );
                     };
+
+                    // The cells we get from direct shaping are always owned
+                    // by the shaper and valid until the next shaping call so
+                    // we can safely use them.
+                    break :cache cells;
+                };
 
                 // Advance our index until we reach or pass
                 // our current x position in the shaper cells.
@@ -1431,7 +1431,7 @@ pub fn rebuildCells(
 
             const cell_pin: terminal.Pin = cell: {
                 var copy = row;
-                copy.x = @intCast(x);
+                copy.x = .{ .col = @intCast(x) };
                 break :cell copy;
             };
 
@@ -1440,14 +1440,16 @@ pub fn rebuildCells(
                 sel.contains(screen, .{
                     .node = row.node,
                     .y = row.y,
-                    .x = @intCast(
-                        // Spacer tails should show the selection
-                        // state of the wide cell they belong to.
-                        if (wide == .spacer_tail)
-                            x -| 1
-                        else
-                            x,
-                    ),
+                    .x = .{
+                        .col = @intCast(
+                            // Spacer tails should show the selection
+                            // state of the wide cell they belong to.
+                            if (wide == .spacer_tail)
+                                x -| 1
+                            else
+                                x,
+                        ),
+                    },
                 })
             else
                 false;
@@ -1640,28 +1642,28 @@ pub fn rebuildCells(
                     // Try to read the cells from the shaping cache if we can.
                     self.font_shaper_cache.get(run) orelse
                     cache: {
-                        // Otherwise we have to shape them.
-                        const cells = try self.font_shaper.shape(run);
+                    // Otherwise we have to shape them.
+                    const cells = try self.font_shaper.shape(run);
 
-                        // Try to cache them. If caching fails for any reason we
-                        // continue because it is just a performance optimization,
-                        // not a correctness issue.
-                        self.font_shaper_cache.put(
-                            self.alloc,
-                            run,
-                            cells,
-                        ) catch |err| {
-                            log.warn(
-                                "error caching font shaping results err={}",
-                                .{err},
-                            );
-                        };
-
-                        // The cells we get from direct shaping are always owned
-                        // by the shaper and valid until the next shaping call so
-                        // we can safely use them.
-                        break :cache cells;
+                    // Try to cache them. If caching fails for any reason we
+                    // continue because it is just a performance optimization,
+                    // not a correctness issue.
+                    self.font_shaper_cache.put(
+                        self.alloc,
+                        run,
+                        cells,
+                    ) catch |err| {
+                        log.warn(
+                            "error caching font shaping results err={}",
+                            .{err},
+                        );
                     };
+
+                    // The cells we get from direct shaping are always owned
+                    // by the shaper and valid until the next shaping call so
+                    // we can safely use them.
+                    break :cache cells;
+                };
 
                 const cells = shaper_cells orelse break :glyphs;
 
