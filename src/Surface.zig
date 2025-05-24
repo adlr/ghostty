@@ -3460,7 +3460,6 @@ pub fn cursorPosCallback(
 
     // The mouse position in the viewport
     const pos_vp = self.posToViewport(pos.x, pos.y);
-    //log.debug("POS_VP: {d} {d}", .{ pos_vp.x, pos_vp.y });
 
     // We always reset the over link status because it will be reprocessed
     // below. But we need the old value to know if we need to undo mouse

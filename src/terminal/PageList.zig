@@ -3372,7 +3372,7 @@ pub const Pin = struct {
     pub fn cells(self: Pin, subset: CellSubset) []pagepkg.Cell {
         const rac = self.rowAndCell();
         const all = self.node.data.getCells(rac.row);
-        log.debug("cells: {}", .{self.x});
+        //log.debug("cells: {}", .{self.x});
         return switch (self.x) {
             .col => |x| switch (subset) {
                 .all => all,
