@@ -8366,6 +8366,57 @@ test "Screen: selectionString end outside of written area" {
     }
 }
 
+test "Screen: selectionString end at left side of area" {
+    const testing = std.testing;
+    const alloc = testing.allocator;
+
+    var s = try init(alloc, 5, 10, 0);
+    defer s.deinit();
+    const str = "1ABCD\n2EFGH\n3IJKL\n4MNOP\n5QRST\n6UVWX";
+    try s.testWriteString(str);
+
+    {
+        const sel = Selection.init(
+            s.pages.pin(.{ .screen = .{ .x = 0, .y = 2 } }).?,
+            s.pages.pin(.{ .screen = .{ .x = 0, .y = 4 } }).?,
+            false,
+        );
+        const contents = try s.selectionString(alloc, .{
+            .sel = sel,
+            .trim = true,
+        });
+        defer alloc.free(contents);
+        const expected = "3IJKL\n4MNOP\n5";
+        try testing.expectEqualStrings(expected, contents);
+    }
+}
+
+test "Screen: selectionString end left of area" {
+    const testing = std.testing;
+    const alloc = testing.allocator;
+
+    var s = try init(alloc, 5, 10, 0);
+    defer s.deinit();
+    const str = "1ABCD\n2EFGH\n3IJKL\n4MNOP\n5QRST\n6UVWX";
+    try s.testWriteString(str);
+
+    {
+        var sel = Selection.init(
+            s.pages.pin(.{ .screen = .{ .x = 0, .y = 2 } }).?,
+            s.pages.pin(.{ .screen = .{ .x = 0, .y = 4 } }).?,
+            false,
+        );
+        sel.endPtr().x = .neg;
+        const contents = try s.selectionString(alloc, .{
+            .sel = sel,
+            .trim = true,
+        });
+        defer alloc.free(contents);
+        const expected = "3IJKL\n4MNOP";
+        try testing.expectEqualStrings(expected, contents);
+    }
+}
+
 test "Screen: selectionString trim space" {
     const testing = std.testing;
     const alloc = testing.allocator;
