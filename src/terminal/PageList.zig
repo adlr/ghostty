@@ -2515,10 +2515,7 @@ pub fn pointFromPin(self: *const PageList, tag: point.Tag, p: Pin) ?point.Point 
     const tl = self.getTopLeft(tag);
 
     // Count our first page which is special because it may be partial.
-    var coord: point.Coordinate = .{ .x = switch (p.x) {
-        .col => p.x.col,
-        .neg => 0,
-    } };
+    var coord: point.Coordinate = .{ .x = p.xInt() };
     if (p.node == tl.node) {
         // If our top-left is after our y then we're outside the range.
         if (tl.y > p.y) return null;
@@ -2825,10 +2822,7 @@ pub const CellIterator = struct {
         const cell = self.cell orelse return null;
         log.debug("cellit: {}", .{cell.x});
 
-        const x: u16 = switch (cell.x) {
-            .col => |x| x,
-            .neg => 0,
-        };
+        const x: u16 = cell.xInt();
         switch (self.row_it.page_it.direction) {
             .right_down => {
                 if (x + 1 < cell.node.data.size.cols) {
@@ -3350,10 +3344,7 @@ pub const Pin = struct {
         }
     } = .{ .col = 0 },
     pub fn xInt(self: Pin) size.CellCountInt {
-        return switch (self.x) {
-            .col => self.x.col,
-            .neg => 0,
-        };
+        return self.xInt();
     }
 
     pub fn rowAndCell(self: Pin) struct {
