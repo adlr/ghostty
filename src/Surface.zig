@@ -3460,6 +3460,7 @@ pub fn cursorPosCallback(
 
     // The mouse position in the viewport
     const pos_vp = self.posToViewport(pos.x, pos.y);
+    //log.debug("POS_VP: {d} {d}", .{ pos_vp.x, pos_vp.y });
 
     // We always reset the over link status because it will be reprocessed
     // below. But we need the old value to know if we need to undo mouse
@@ -3564,7 +3565,7 @@ pub fn cursorPosCallback(
 
         // Convert to points
         const screen = &self.renderer_state.terminal.screen;
-        const pin = screen.pages.pin(.{
+        var pin = screen.pages.pin(.{
             .viewport = .{
                 .x = pos_vp.x,
                 .y = pos_vp.y,
@@ -3573,6 +3574,10 @@ pub fn cursorPosCallback(
             if (comptime std.debug.runtime_safety) unreachable;
             return;
         };
+        if (pos.x <= @as(f32, @floatFromInt(self.size.padding.left))) {
+            pin.x = .neg;
+        }
+        log.debug("PIN.x: {}", .{pin.x});
 
         // Handle dragging depending on click count
         switch (self.mouse.left_click_count) {

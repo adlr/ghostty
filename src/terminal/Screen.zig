@@ -2196,7 +2196,10 @@ pub fn selectionString(self: *Screen, alloc: Allocator, opts: SelectionString) !
                 0;
             const end_x = if ((row_i == rows.len - 1 or sel_ordered.rectangle) and
                 sel_end.node == chunk.node)
-                sel_end.xInt() + 1
+                switch (sel_end.x) {
+                    .col => |x| x + 1,
+                    .neg => 0,
+                }
             else
                 self.pages.cols;
 

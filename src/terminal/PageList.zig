@@ -2823,6 +2823,7 @@ pub const CellIterator = struct {
 
     pub fn next(self: *CellIterator) ?Pin {
         const cell = self.cell orelse return null;
+        log.debug("cellit: {}", .{cell.x});
 
         const x: u16 = switch (cell.x) {
             .col => |x| x,
@@ -3371,6 +3372,7 @@ pub const Pin = struct {
     pub fn cells(self: Pin, subset: CellSubset) []pagepkg.Cell {
         const rac = self.rowAndCell();
         const all = self.node.data.getCells(rac.row);
+        log.debug("cells: {}", .{self.x});
         return switch (self.x) {
             .col => |x| switch (subset) {
                 .all => all,
