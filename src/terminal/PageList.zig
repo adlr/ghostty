@@ -3344,7 +3344,10 @@ pub const Pin = struct {
         }
     } = .{ .col = 0 },
     pub fn xInt(self: Pin) size.CellCountInt {
-        return self.xInt();
+        return switch (self.x) {
+            .col => |x| x,
+            .neg => 0,
+        };
     }
 
     pub fn rowAndCell(self: Pin) struct {
