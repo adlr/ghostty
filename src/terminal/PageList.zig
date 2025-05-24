@@ -2554,13 +2554,13 @@ pub fn pointFromPin(self: *const PageList, tag: point.Tag, p: Pin) ?point.Point 
 /// Warning: this is slow and should not be used in performance critical paths
 pub fn getCell(self: *const PageList, pt: point.Point) ?Cell {
     const pt_pin = self.pin(pt) orelse return null;
-    const rac = pt_pin.node.data.getRowAndCell(pt_pin.x, pt_pin.y);
+    const rac = pt_pin.node.data.getRowAndCell(pt_pin.xInt(), pt_pin.y);
     return .{
         .node = pt_pin.node,
         .row = rac.row,
         .cell = rac.cell,
         .row_idx = pt_pin.y,
-        .col_idx = pt_pin.x,
+        .col_idx = pt_pin.xInt(),
     };
 }
 
@@ -3801,7 +3801,7 @@ test "PageList" {
     try testing.expectEqual(Pin{
         .node = s.pages.first.?,
         .y = 0,
-        .x = 0,
+        .x = .{ .col = 0 },
     }, s.getTopLeft(.active));
 }
 
@@ -3844,7 +3844,7 @@ test "PageList pointFromPin active no history" {
         }, s.pointFromPin(.active, .{
             .node = s.pages.first.?,
             .y = 0,
-            .x = 0,
+            .x = .{ .col = 0 },
         }).?);
     }
     {
@@ -3856,7 +3856,7 @@ test "PageList pointFromPin active no history" {
         }, s.pointFromPin(.active, .{
             .node = s.pages.first.?,
             .y = 2,
-            .x = 4,
+            .x = .{ .col = 4 },
         }).?);
     }
 }
@@ -3878,7 +3878,7 @@ test "PageList pointFromPin active with history" {
         }, s.pointFromPin(.active, .{
             .node = s.pages.first.?,
             .y = 30,
-            .x = 2,
+            .x = .{ .col = 2 },
         }).?);
     }
 
@@ -3887,7 +3887,7 @@ test "PageList pointFromPin active with history" {
         try testing.expect(s.pointFromPin(.active, .{
             .node = s.pages.first.?,
             .y = 21,
-            .x = 2,
+            .x = .{ .col = 2 },
         }) == null);
     }
 }
@@ -3920,7 +3920,7 @@ test "PageList pointFromPin active from prior page" {
         }, s.pointFromPin(.active, .{
             .node = s.pages.last.?,
             .y = 0,
-            .x = 2,
+            .x = .{ .col = 2 },
         }).?);
     }
 
@@ -3929,7 +3929,7 @@ test "PageList pointFromPin active from prior page" {
         try testing.expect(s.pointFromPin(.active, .{
             .node = s.pages.first.?,
             .y = 0,
-            .x = 0,
+            .x = .{ .col = 0 },
         }) == null);
     }
 }
@@ -3967,7 +3967,7 @@ test "PageList pointFromPin traverse pages" {
         }, s.pointFromPin(.screen, .{
             .node = s.pages.last.?.prev.?,
             .y = 5,
-            .x = 2,
+            .x = .{ .col = 2 },
         }).?);
     }
 
@@ -3976,7 +3976,7 @@ test "PageList pointFromPin traverse pages" {
         try testing.expect(s.pointFromPin(.active, .{
             .node = s.pages.first.?,
             .y = 0,
-            .x = 0,
+            .x = .{ .col = 0 },
         }) == null);
     }
 }
@@ -4476,7 +4476,7 @@ test "PageList grow prune scrollback" {
 
     // Our tracked pin should point to the top-left of the first page
     try testing.expect(p.node == s.pages.first.?);
-    try testing.expect(p.x == 0);
+    try testing.expect(p.x.col == 0);
     try testing.expect(p.y == 0);
 }
 
@@ -4986,7 +4986,7 @@ test "PageList erase row with tracked pin resets to top-left" {
     // Our pin should move to the first page
     try testing.expectEqual(s.pages.first.?, p.node);
     try testing.expectEqual(@as(usize, 0), p.y);
-    try testing.expectEqual(@as(usize, 0), p.x);
+    try testing.expectEqual(@as(usize, 0), p.x.col);
 }
 
 test "PageList erase row with tracked pin shifts" {
@@ -5007,7 +5007,7 @@ test "PageList erase row with tracked pin shifts" {
     // Our pin should move to the first page
     try testing.expectEqual(s.pages.first.?, p.node);
     try testing.expectEqual(@as(usize, 0), p.y);
-    try testing.expectEqual(@as(usize, 2), p.x);
+    try testing.expectEqual(@as(usize, 2), p.x.col);
 }
 
 test "PageList erase row with tracked pin is erased" {
@@ -5028,7 +5028,7 @@ test "PageList erase row with tracked pin is erased" {
     // Our pin should move to the first page
     try testing.expectEqual(s.pages.first.?, p.node);
     try testing.expectEqual(@as(usize, 0), p.y);
-    try testing.expectEqual(@as(usize, 0), p.x);
+    try testing.expectEqual(@as(usize, 0), p.x.col);
 }
 
 test "PageList erase resets viewport to active if moves within active" {
@@ -5187,15 +5187,15 @@ test "PageList eraseRowBounded less than full row" {
 
     try testing.expectEqual(s.pages.first.?, p_top.node);
     try testing.expectEqual(@as(usize, 4), p_top.y);
-    try testing.expectEqual(@as(usize, 0), p_top.x);
+    try testing.expectEqual(@as(usize, 0), p_top.x.col);
 
     try testing.expectEqual(s.pages.first.?, p_bot.node);
     try testing.expectEqual(@as(usize, 7), p_bot.y);
-    try testing.expectEqual(@as(usize, 0), p_bot.x);
+    try testing.expectEqual(@as(usize, 0), p_bot.x.col);
 
     try testing.expectEqual(s.pages.first.?, p_out.node);
     try testing.expectEqual(@as(usize, 9), p_out.y);
-    try testing.expectEqual(@as(usize, 0), p_out.x);
+    try testing.expectEqual(@as(usize, 0), p_out.x.col);
 }
 
 test "PageList eraseRowBounded with pin at top" {
@@ -5221,7 +5221,7 @@ test "PageList eraseRowBounded with pin at top" {
 
     try testing.expectEqual(s.pages.first.?, p_top.node);
     try testing.expectEqual(@as(usize, 0), p_top.y);
-    try testing.expectEqual(@as(usize, 0), p_top.x);
+    try testing.expectEqual(@as(usize, 0), p_top.x.col);
 }
 
 test "PageList eraseRowBounded full rows single page" {
@@ -5251,11 +5251,11 @@ test "PageList eraseRowBounded full rows single page" {
     // Our pin should move to the first page
     try testing.expectEqual(s.pages.first.?, p_in.node);
     try testing.expectEqual(@as(usize, 6), p_in.y);
-    try testing.expectEqual(@as(usize, 0), p_in.x);
+    try testing.expectEqual(@as(usize, 0), p_in.x.col);
 
     try testing.expectEqual(s.pages.first.?, p_out.node);
     try testing.expectEqual(@as(usize, 8), p_out.y);
-    try testing.expectEqual(@as(usize, 0), p_out.x);
+    try testing.expectEqual(@as(usize, 0), p_out.x.col);
 }
 
 test "PageList eraseRowBounded full rows two pages" {
@@ -5289,19 +5289,19 @@ test "PageList eraseRowBounded full rows two pages" {
     {
         try testing.expectEqual(s.pages.last.?.prev.?, p_first.node);
         try testing.expectEqual(@as(usize, p_first.node.data.size.rows - 1), p_first.y);
-        try testing.expectEqual(@as(usize, 0), p_first.x);
+        try testing.expectEqual(@as(usize, 0), p_first.x.col);
 
         try testing.expectEqual(s.pages.last.?.prev.?, p_first_out.node);
         try testing.expectEqual(@as(usize, p_first_out.node.data.size.rows - 2), p_first_out.y);
-        try testing.expectEqual(@as(usize, 0), p_first_out.x);
+        try testing.expectEqual(@as(usize, 0), p_first_out.x.col);
 
         try testing.expectEqual(s.pages.last.?, p_in.node);
         try testing.expectEqual(@as(usize, 3), p_in.y);
-        try testing.expectEqual(@as(usize, 0), p_in.x);
+        try testing.expectEqual(@as(usize, 0), p_in.x.col);
 
         try testing.expectEqual(s.pages.last.?, p_out.node);
         try testing.expectEqual(@as(usize, 4), p_out.y);
-        try testing.expectEqual(@as(usize, 0), p_out.x);
+        try testing.expectEqual(@as(usize, 0), p_out.x.col);
     }
 
     // Erase only a few rows in our active
@@ -5317,22 +5317,22 @@ test "PageList eraseRowBounded full rows two pages" {
     // In page in first page is shifted
     try testing.expectEqual(s.pages.last.?.prev.?, p_first.node);
     try testing.expectEqual(@as(usize, p_first.node.data.size.rows - 2), p_first.y);
-    try testing.expectEqual(@as(usize, 0), p_first.x);
+    try testing.expectEqual(@as(usize, 0), p_first.x.col);
 
     // Out page in first page should not be shifted
     try testing.expectEqual(s.pages.last.?.prev.?, p_first_out.node);
     try testing.expectEqual(@as(usize, p_first_out.node.data.size.rows - 2), p_first_out.y);
-    try testing.expectEqual(@as(usize, 0), p_first_out.x);
+    try testing.expectEqual(@as(usize, 0), p_first_out.x.col);
 
     // In page is shifted
     try testing.expectEqual(s.pages.last.?, p_in.node);
     try testing.expectEqual(@as(usize, 2), p_in.y);
-    try testing.expectEqual(@as(usize, 0), p_in.x);
+    try testing.expectEqual(@as(usize, 0), p_in.x.col);
 
     // Out page is not shifted
     try testing.expectEqual(s.pages.last.?, p_out.node);
     try testing.expectEqual(@as(usize, 4), p_out.y);
-    try testing.expectEqual(@as(usize, 0), p_out.x);
+    try testing.expectEqual(@as(usize, 0), p_out.x.col);
 }
 
 test "PageList clone" {
@@ -7558,7 +7558,7 @@ test "PageList resize reflow less cols no wrapped rows" {
     while (it.next()) |offset| {
         for (0..4) |x| {
             var offset_copy = offset;
-            offset_copy.x = @intCast(x);
+            offset_copy.x = .{ .col = @intCast(x) };
             const rac = offset_copy.rowAndCell();
             const cells = offset.node.data.getCells(rac.row);
             try testing.expectEqual(@as(usize, 5), cells.len);
@@ -8251,7 +8251,7 @@ test "PageList resize reflow less cols copy style" {
     while (it.next()) |offset| {
         for (0..s.cols - 1) |x| {
             var offset_copy = offset;
-            offset_copy.x = @intCast(x);
+            offset_copy.x = .{ .col = @intCast(x) };
             const rac = offset_copy.rowAndCell();
             const style_id = rac.cell.style_id;
             try testing.expect(style_id != 0);
@@ -8411,7 +8411,7 @@ test "PageList resize reflow less cols copy kitty placeholder" {
     while (it.next()) |offset| {
         for (0..s.cols - 1) |x| {
             var offset_copy = offset;
-            offset_copy.x = @intCast(x);
+            offset_copy.x = .{ .col = @intCast(x) };
             const rac = offset_copy.rowAndCell();
 
             const row = rac.row;
@@ -8515,7 +8515,7 @@ test "PageList reset" {
     try testing.expectEqual(Pin{
         .node = s.pages.first.?,
         .y = 0,
-        .x = 0,
+        .x = .{ .col = 0 },
     }, s.getTopLeft(.active));
 }
 
@@ -8559,6 +8559,6 @@ test "PageList clears history" {
     try testing.expectEqual(Pin{
         .node = s.pages.first.?,
         .y = 0,
-        .x = 0,
+        .x = .{ .col = 0 },
     }, s.getTopLeft(.active));
 }
